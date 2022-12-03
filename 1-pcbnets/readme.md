@@ -62,7 +62,9 @@ In words:
  - GPIO9 inputs switch K_DOWN (low active)
  - GPIO10 inputs switch K_UP (low active)
  - GPIO16 inputs switch K_SET (low active)
-
+ - GPIO14 external KEY used for Bluetooth module
+ - GPIO4 external PIN2 used for Bluetooth module
+ - GPIO5 Alarm Buzzer
 
 ## GPIO nets (I2C)
 

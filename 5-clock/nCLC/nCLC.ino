@@ -36,8 +36,8 @@ NvmField cfg_fields[] = {
 };
 
 
-#define CFG_BUT_PIN 0 // Button to select Config mode (mapped to the SET button)
-#define CFG_LED_PIN 2 // LED to indicate Config mode (mapped to the (only) LED on the board
+#define CFG_BUT_PIN BUT3_PIN // Button to select Config mode (mapped to the SET button)
+#define CFG_LED_PIN LED2_PIN // LED to indicate Config mode (mapped to the (only) LED on the board
 Cfg cfg("nCLC", cfg_fields, CFG_SERIALLVL_USR, CFG_LED_PIN);
 
 int render_hours_len; // 12 or 24
@@ -148,8 +148,8 @@ void loop() {
     int  hr = snow->tm_hour % render_hours_len;
     sprintf(bnow,"%2d%02d", hr, snow->tm_min );
     int dots = millis()-colon_msecs<500 ? DISP_DOTNO : DISP_DOTCOLON;
-    if( render_hours_flag==RENDER_FLAG_AM && !pm ) dots |= DISP_DOT4;
-    if( render_hours_flag==RENDER_FLAG_PM &&  pm ) dots |= DISP_DOT4;
+    if( render_hours_flag==RENDER_FLAG_AM && !pm ) dots |= DISP_DOT3;
+    if( render_hours_flag==RENDER_FLAG_PM &&  pm ) dots |= DISP_DOT3;
     disp_show(bnow,dots);
   }
 }

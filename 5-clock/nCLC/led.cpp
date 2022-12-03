@@ -2,26 +2,43 @@
 #include <Arduino.h>
 #include "led.h"
 
-#define LED_PIN 2
 
 void led_init() {
   led_off();
-  pinMode(LED_PIN, OUTPUT);
+  led2_off();
+  pinMode(LED1_PIN, OUTPUT);
+  pinMode(LED2_PIN, OUTPUT);
   Serial.printf("led : init\n");
 }
 
 void led_set(int on) {
-  digitalWrite(LED_PIN, !on ); // low active
+  digitalWrite(LED1_PIN, !on ); // low active
+}
+
+void led2_set(int on) {
+  digitalWrite(LED2_PIN, !on ); // low active
 }
 
 int led_get() {
-  return !digitalRead(LED_PIN); // low active
+  return !digitalRead(LED1_PIN); // low active
+}
+
+int led2_get() {
+  return !digitalRead(LED2_PIN); // low active
 }
 
 void led_on() {
   led_set(1);
 }
 
+void led2_on() {
+  led2_set(1);
+}
+
 void led_off() {
   led_set(0);
+}
+
+void led2_off() {
+  led2_set(0);
 }

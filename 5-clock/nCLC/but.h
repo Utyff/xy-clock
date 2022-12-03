@@ -7,6 +7,9 @@
 #define BUT2 2
 #define BUT3 4
 
+#define BUT1_PIN 9  // DOWN
+#define BUT2_PIN 10 // UP
+#define BUT3_PIN 16 // SET
 
 void but_scan();                // Scans the button state and records that; check with but_wentdown().
 int  but_wentdown(int buttons); // Returns a mask of buttons pressed during the last `but_scan` and not pressed during the `but_scan` before that.
