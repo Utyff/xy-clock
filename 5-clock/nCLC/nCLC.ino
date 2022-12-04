@@ -116,6 +116,9 @@ void loop() {
   // In normal application mode
   led_set( !wifi_isconnected() );     // LED is on when not connected
   but_scan();
+  if (but_wentdown(BUT1 | BUT2 | BUT3)) {
+    Serial.printf("Button pressed: %d\n", but_wentdown(BUT1 | BUT2 | BUT3));
+  }
 
   if( but_wentdown(BUT3) ) disp_brightness_set( disp_brightness_get()%8 + 1 );
   if( but_wentdown(BUT2) ) show_date = !show_date;
