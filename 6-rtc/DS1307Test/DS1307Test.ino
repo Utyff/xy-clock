@@ -11,17 +11,15 @@ ErriezDS1307 rtc;
 
 #define CHK(err) {                      \
     if ((err) == Success) {             \
-        while (0)                       \
-            ;                           \
+        while (0);                      \
     } else {                            \
-        Serial.print(F("Failure: "));     \
+        Serial.print(F("Failure: "));   \
         Serial.print((strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__));     \
         Serial.print(F(":"));           \
         Serial.println(__LINE__);       \
         Serial.flush();                 \
         noInterrupts();                 \
-        while (1)                       \
-            ;                           \
+        while (1);                      \
     }                                   \
 }
 
@@ -168,7 +166,7 @@ bool rtcInit() {
     // Wire.setClock(100000);
 
     // Initialize RTC
-    Serial.println("DS1307 Initinialize.");
+    Serial.println("DS1307 Initialize.");
     CHK(rtc.begin() == true);
     Serial.println("DS1307 Init successful.");
 
