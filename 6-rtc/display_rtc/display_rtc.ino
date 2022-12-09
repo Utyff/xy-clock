@@ -27,28 +27,30 @@ void setup() {
     while (!Serial);
     Serial.println(F("\nDS1307 begin test\n"));
 
-    // Identify oursleves, regardless if we go into config mode or the real app
+    // Initialize display
     disp_init();
     disp_power_set(1);
     disp_show("nClC");
 
+    // Initialize RTC
     rtcInit();
-    rtcCheck();
 
     CHK(rtcGet(&dtr));
     Serial.printf("\nFirst read: %d %02d %02d %d - %02d:%02d:%02d\n", dtr.tm_year,
                   dtr.tm_mon, dtr.tm_mday, dtr.tm_wday, dtr.tm_hour, dtr.tm_min, dtr.tm_sec);
 
-    // Set time for test
-    Serial.println("Set RTC");
-    dtw.tm_hour = 12;
-    dtw.tm_min = 34;
-    dtw.tm_sec = 56;
-    dtw.tm_mday = 29;
-    dtw.tm_mon = 1; // 0=January
-    dtw.tm_year = 2020 - 1900;
-    dtw.tm_wday = 6; // 0=Sunday
-    CHK(rtcSet(&dtw));
+    if (!rtcCheck()) {
+        // Set RTC time if it doesn't valid
+        Serial.println("Set RTC");
+        dtw.tm_hour = 12;
+        dtw.tm_min = 34;
+        dtw.tm_sec = 56;
+        dtw.tm_mday = 29;
+        dtw.tm_mon = 1; // 0=January
+        dtw.tm_year = 2020 - 1900;
+        dtw.tm_wday = 6; // 0=Sunday
+        CHK(rtcSet(&dtw));
+    }
 
     CHK(rtcGet(&dtr));
     Serial.printf("Time: %d %02d %02d %d - %02d:%02d:%02d\n", dtr.tm_year,
@@ -67,8 +69,8 @@ void loop() {
                   dtr.tm_mon, dtr.tm_mday, dtr.tm_wday, dtr.tm_hour, dtr.tm_min, dtr.tm_sec);
 
     char now[5];
-    sprintf(now,"%2d%02d", dtr.tm_min, dtr.tm_sec);
-    disp_show(now,DISP_DOTCOLON);
+    sprintf(now, "%2d%02d", dtr.tm_min, dtr.tm_sec);
+    disp_show(now, DISP_DOTCOLON);
 
     delay(1000);
 }

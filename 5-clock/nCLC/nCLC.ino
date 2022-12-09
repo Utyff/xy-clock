@@ -1,6 +1,6 @@
 // nCLC.ino - alternative firmware for XY-Clock: basic NTP clock
 // board: Generic ESP8285 module
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 #include <coredecls.h> // Only needed for settimeofday_cb()
 #include <core_version.h> // ARDUINO_ESP8266_RELEASE
@@ -9,6 +9,7 @@
 #include "led.h"
 #include "but.h"
 #include "disp.h"
+#include "rtc.h"
 #include "wifi.h"
 
 
@@ -48,6 +49,12 @@ int render_hours_flag; // RENDER_FLAG_AM, RENDER_FLAG_PM or RENDER_FLAG_NO
 const char * render_hours_flag_names[3] = {"am","pm","no"};
 int render_dayfirst;
 const char * render_months=" 1 2 3 4 5 6 7 8 9101112";
+bool ntpSync = false; // flag NTP synchronized
+
+// for testing set short NTP delay
+//uint32_t sntp_update_delay_MS_rfc_not_less_than_15000 () {
+//  return 15000; // 15s
+//}
 
 void setup() {
   Serial.begin(115200);
@@ -66,6 +73,9 @@ void setup() {
   disp_power_set(1);
   disp_show("nClC");
 
+  // Initialize RTC
+  rtcInit();
+
   // On boot: check if config button is pressed
   cfg.check(100,CFG_BUT_PIN); // Wait 100 flashes (of 50ms) for a change on pin CFG_BUT_PIN
   // if in config mode, do config setup (when config completes, it restarts the device)
@@ -77,8 +87,20 @@ void setup() {
   led_on();
   but_init();
 
+  // if RTC have valid time use it
+  setTZ(cfg.getval("Timezone"));
+  if (rtcCheck()) {
+    struct tm dt;
+    rtcGet(&dt);
+    Serial.printf("rtc : %d-%02d-%02d %02d:%02d:%02d\n", dt.tm_year + 1900, dt.tm_mon + 1, dt.tm_mday, dt.tm_hour, dt.tm_min, dt.tm_sec);
+    time_t t = mktime(&dt);
+    timeval tv = { t, 0 };
+    settimeofday(&tv, nullptr);
+  } else {
+    disp_show("NtP");
+  }
+
   // Preprocess config for rendering
-  disp_show("NtP");
   if( cfg.getval("hours")[0]=='1' && cfg.getval("hours")[1]=='2' ) render_hours_len=12; else render_hours_len=24;
   if( cfg.getval("hours")[2]=='a' ) render_hours_flag = RENDER_FLAG_AM;
   else if( cfg.getval("hours")[2]=='p' ) render_hours_flag = RENDER_FLAG_PM;
@@ -93,7 +115,7 @@ void setup() {
   configTime( cfg.getval("Timezone"), cfg.getval("NTP.server.1"), cfg.getval("NTP.server.2"), cfg.getval("NTP.server.3"));
   Serial.printf("clk : init: %s %s %s\n", cfg.getval("NTP.server.1"), cfg.getval("NTP.server.2"), cfg.getval("NTP.server.3"));
   Serial.printf("clk : timezone: %s\n", cfg.getval("Timezone") );
-  settimeofday_cb( [](){Serial.printf("clk : NTP sync\n");} );  // Pass lambda function to print SET when time is set
+  settimeofday_cb( [](){ntpSync = true;} );  // Pass lambda function to print SET when time is set
 
   // App starts running
   Serial.printf("\n");
@@ -107,7 +129,7 @@ uint32_t  colon_msecs;
 
 // Showing time or date
 int       show_date;
-
+int  serialTimeout = 0;
 
 void loop() {
   // if in config mode, do config loop (when config completes, it restarts the device)
@@ -127,10 +149,24 @@ void loop() {
   struct tm * snow= localtime(&tnow); // Returns a struct with time fields (https://www.tutorialspoint.com/c_standard_library/c_function_localtime.htm)
   bool        sync= snow->tm_year>120;// We miss-use "old" time as indication of "time not yet set" (year is 1900 based)
 
+  // When NTC synchronized - update RTC
+  if (ntpSync) {
+    ntpSync = false;
+    Serial.printf("clk : NTP sync\n");
+    if (!sync) {
+      Serial.printf("clk : Houston, we have a problem\n");
+    } else {
+      rtcSet(snow);
+    }
+  }
+
   // If seconds changed: print
   if( snow->tm_sec != colon_prev ) {
     // In `snow` the `tm_year` field is 1900 based, `tm_month` is 0 based, rest is as expected
-    Serial.printf("main: %d-%02d-%02d %02d:%02d:%02d (dst=%d) %s\n", snow->tm_year + 1900, snow->tm_mon + 1, snow->tm_mday, snow->tm_hour, snow->tm_min, snow->tm_sec, snow->tm_isdst, sync?"":"NO NTP" );
+    if( serialTimeout-- < 1 ) {
+      serialTimeout = 60;
+      Serial.printf("main: %d-%02d-%02d %02d:%02d:%02d (dst=%d) %s\n", snow->tm_year + 1900, snow->tm_mon + 1, snow->tm_mday, snow->tm_hour, snow->tm_min, snow->tm_sec, snow->tm_isdst, sync?"":"NO NTP" );
+    }
     // Record that seconds changed, for colon
     colon_prev = snow->tm_sec;
     colon_msecs = millis();
