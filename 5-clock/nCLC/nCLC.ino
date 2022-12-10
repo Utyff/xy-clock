@@ -96,6 +96,9 @@ void setup() {
     time_t t = mktime(&dt);
     timeval tv = { t, 0 };
     settimeofday(&tv, nullptr);
+    char bnow[5];
+    sprintf(bnow,"%2d%02d", dt.tm_hour, dt.tm_min );
+    disp_show(bnow,DISP_DOTNO);
   } else {
     disp_show("NtP");
   }

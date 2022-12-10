@@ -6,7 +6,7 @@
 
 #define CHK(err) {                      \
     if (!err) {                         \
-        Serial.print(F("Failure: "));   \
+        Serial.print(F("rtc : Failure: "));   \
         Serial.print((strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__));     \
         Serial.print(F(":"));           \
         Serial.println(__LINE__);       \
@@ -48,20 +48,20 @@ bool rtcCheck() {
     uint8_t buf[8];
 
     if (!rtc.isRunning()) {
-        Serial.println("Check fail: RTC not running.");
+        Serial.println("rtc : does not have a valid time. RTC not running.");
         return false;
     }
 
     CHK(rtc.readBuffer(ID_STR_ADDR, buf, ID_STR_LENGTH));
-    Serial.printf("read ID: %02x %02x %02x %02x %02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
     for (int i = 0; i < ID_STR_LENGTH; i++) {
         if (ID_STR[i] != buf[i]) {
-            Serial.printf("Wrong char at i=%d  ID char: %02x - read char: %02x\n", i, ID_STR[i], buf[i]);
-            Serial.println("Check fail: ID string not match.");
+            Serial.printf("rtc : read ID %02x %02x %02x %02x %02x %02x %02x %02x\n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+            Serial.printf("rtc : Wrong char at i=%d  ID char: %02x - read char: %02x\n", i, ID_STR[i], buf[i]);
+            Serial.println("rtc : does not have a valid time. ID string not match.");
             return false;
         }
     }
-    Serial.println("ID matched. Check passed");
+    Serial.println("rtc : has a valid time");
     return true;
 }
 
